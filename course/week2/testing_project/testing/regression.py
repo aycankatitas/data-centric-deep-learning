@@ -54,7 +54,7 @@ def build_regression_test(system, loader):
     labels = batch[1]  # these are the true labels!
     # these are unnormalized probabilities the model predicts
     logits = system.predict_step(batch[0])
-    # the actual prediction is the argmax of the logits
+    # the actual prediction is the argmax of the logits - puts out the index of max logit
     preds = torch.argmax(logits, dim=1)
 
     batch_is_correct = []
@@ -99,7 +99,16 @@ def build_regression_test(system, loader):
     # batch_is_correct: List[int] (not a torch.Tensor!)
     #   List of integers - 1 if the model got that element correct 
     #                    - 0 if the model got that element incorrect
-    pass # remove me
+    # for pred, label in zip(preds,labels):
+    #   if pred == label:
+    #     batch_is_correct.append(1)
+    #   else:
+    #     batch_is_correct.append(0)
+    # batch_is_correct = batch_is_correct.tolist() 
+    batch_is_correct = (preds==labels).int().tolist()
+
+    loss = F.cross_entropy(logits,labels,reduction="none")
+    batch_loss = loss.tolist()
     # ================================
     losses.extend(batch_loss)
     is_correct.extend(batch_is_correct)
