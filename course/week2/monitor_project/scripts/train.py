@@ -73,6 +73,9 @@ class TrainClassifier(FlowSpec):
   
     self.next(self.train_model)
 
+  def create_fresh_system(self):
+    return SentimentClassifierSystem(self.config)
+
   @step
   def train_model(self):
     """Calls `fit` on the trainer."""
