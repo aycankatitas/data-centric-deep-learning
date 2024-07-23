@@ -114,8 +114,8 @@ def get_vocab_outlier(tr_vocab, te_vocab):
  
   num_seen = sum(1 for word in te_vocab if word in tr_vocab)
   num_total = len(te_vocab)
-  #score = 1 - (num_seen/num_total)
-  score = num_seen
+  score = 1 - (num_seen/num_total)
+  
   # ============================
   return score
 
