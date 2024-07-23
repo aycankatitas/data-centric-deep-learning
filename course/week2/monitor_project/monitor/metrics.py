@@ -111,9 +111,11 @@ def get_vocab_outlier(tr_vocab, te_vocab):
   # te_vocab: dict[str, int]
   #   Map from word to count for test examples
   # score: float (between 0 and 1)
+ 
   num_seen = sum(1 for word in te_vocab if word in tr_vocab)
   num_total = len(te_vocab)
-  score = 1 - (num_seen/num_total)
+  #score = 1 - (num_seen/num_total)
+  score = num_seen
   # ============================
   return score
 
