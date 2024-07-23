@@ -26,7 +26,7 @@ class TestFlow(FlowSpec):
   test (str, default: offline)
   checkpoint (str, default: ./checkpoints/model.ckpt)
   """
-  test_type = Parameter('test_type', help='test type to run', default = 'production') # offline
+  test_type = Parameter('test', help='test type to run', default = 'production') # offline
   checkpoint_path = Parameter('checkpoint', help = 'path to checkpoint file', default = join(CHECKPOINT_DIR, 'model.ckpt'))
 
   @step
@@ -52,8 +52,10 @@ class TestFlow(FlowSpec):
     # Load trained system
     system = FashionClassifierSystem.load_from_checkpoint(self.checkpoint_path)
 
-    if self.test_type == "offline":
+    if self.test == "offline":
       dm = FashionDataModule()
+      trainer.test(system, dm, ckpt_path = self.checkpoint_path)
+      results = system.test_results
       trainer.test(system, dm, ckpt_path = self.checkpoint_path)
       results = system.test_results
       log_name = 'offline.json'
@@ -62,6 +64,8 @@ class TestFlow(FlowSpec):
       # In reality, we do not have these hidden labels accessible.
       ds = ProductionDataset(join(DATA_DIR, 'production/dataset.pt'), return_hidden_labels = True)
       dl = DataLoader(ds, batch_size=10)
+      trainer.test(system, dataloaders = dl, ckpt_path = self.checkpoint_path)
+      results = system.test_results
       trainer.test(system, dataloaders = dl, ckpt_path = self.checkpoint_path)
       results = system.test_results
       log_name = 'production.json'
