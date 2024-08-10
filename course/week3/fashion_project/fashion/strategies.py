@@ -20,6 +20,11 @@ def random_sampling(pred_probs: torch.Tensor, budget : int = 1000) -> List[int]:
   # Note that we fixed the random seed above. Please do not edit.
   # HINT: when you randomly sample, do not choose duplicates.
   # HINT: please ensure indices is a list of integers
+  all_indices=np.arange(len(pred_probs))
+  indices = np.random.choice(all_indices, size=budget, replace=False)
+  indices = np.sort(indices)
+  indices = indices.tolist()
+
   # ================================
   return indices
 
@@ -38,6 +43,15 @@ def uncertainty_sampling(pred_probs: torch.Tensor, budget : int = 1000) -> List[
   # for a N-way classification problem.
   # Take the first 1000.
   # HINT: please ensure indices is a list of integers
+  max_probs = torch.max(pred_probs,dim=1).values
+
+  # calculate distance from 0.1
+  distances = torch.abs(max_probs-chance_prob)
+
+  # sort indices by distance from 0.1
+  sorted_indices = torch.argsort(distances)
+
+  indices = sorted_indices[:budget].tolist()
   # ================================
   return indices
 
@@ -52,6 +66,14 @@ def margin_sampling(pred_probs: torch.Tensor, budget : int = 1000) -> List[int]:
   # FILL ME OUT
   # Sort indices by the different in predicted probabilities in the top two classes per example.
   # Take the first 1000.
+  max_probs, _ = torch.topk(pred_probs,k=2,dim=1)
+
+  differences = max_probs[:, 0] - max_probs[:, 1]
+
+  sorted_indices = torch.argsort(differences)
+
+  indices = sorted_indices[:budget].tolist()
+
   # ================================
   return indices
 
@@ -70,5 +92,10 @@ def entropy_sampling(pred_probs: torch.Tensor, budget : int = 1000) -> List[int]
   # Sort the indices by the entropy of the predicted probabilities from high to low.
   # Take the first 1000.
   # HINT: Add epsilon when taking a log for entropy computation
+  entropy = -torch.sum(pred_probs * torch.log(pred_probs+epsilon), dim=1)
+
+  sorted_indices = torch.argsort(entropy, descending=True)
+
+  indices = sorted_indices[:budget].tolist()
   # ================================
   return indices

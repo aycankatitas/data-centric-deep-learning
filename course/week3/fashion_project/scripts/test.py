@@ -26,7 +26,7 @@ class TestFlow(FlowSpec):
   test (str, default: offline)
   checkpoint (str, default: ./checkpoints/model.ckpt)
   """
-  test_type = Parameter('test', help='test type to run', default = 'production') # offline
+  test_type = Parameter('test_type', help='test type to run', default = 'production') # offline
   checkpoint_path = Parameter('checkpoint', help = 'path to checkpoint file', default = join(CHECKPOINT_DIR, 'model.ckpt'))
 
   @step
@@ -52,7 +52,7 @@ class TestFlow(FlowSpec):
     # Load trained system
     system = FashionClassifierSystem.load_from_checkpoint(self.checkpoint_path)
 
-    if self.test == "offline":
+    if self.test_type == "offline":
       dm = FashionDataModule()
       trainer.test(system, dm, ckpt_path = self.checkpoint_path)
       results = system.test_results
