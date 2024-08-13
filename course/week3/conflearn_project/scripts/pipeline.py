@@ -161,7 +161,30 @@ class TrainIdentifyReview(FlowSpec):
       # Types:
       # --
       # probs_: np.array[float] (shape: |test set|)
-      # TODO
+
+      X_train, X_test = X[train_index], X[test_index]
+      y_train, y_test = y[train_index], y[test_index]
+
+      # convert to torch tensor 
+      X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
+      y_train_tensor = torch.tensor(y_train, dtype=torch.float32)
+      X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
+      y_test_tensor= torch.tensor(y_test, dtype=torch.float32)
+
+      # Create datasets and data loaders 
+      train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
+      test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
+      train_loader = DataLoader(train_dataset, batch_size=self.config.train.optimizer.batch_size,shuffle=True)
+      test_loader = DataLoader(test_dataset, batch_size=self.config.train.optimizer.batch_size, shuffle=False)
+
+      # a PyTorch Lightning system wraps around model logic
+      system = SentimentClassifierSystem(self.config)
+      trainer = Trainer(max_epochs=self.config.train.optimizer.max_epochs)
+      trainer.fit(system,train_loader)
+
+      probs_ = trainer.predict(system, test_loader)
+
+      probs_ = np.concatenate([p.numpy() for p in probs_]).flatten()
       # ===============================================
       assert probs_ is not None, "`probs_` is not defined."
       probs[test_index] = probs_
@@ -206,7 +229,7 @@ class TrainIdentifyReview(FlowSpec):
     # Types
     # --
     # ranked_label_issues: List[int]
-    # TODO
+    ranked_label_issues = find_label_issues(self.all_df.label, prob, return_indices_ranked_by="self_confidence")
     # =============================
     assert ranked_label_issues is not None, "`ranked_label_issues` not defined."
 
@@ -303,7 +326,9 @@ class TrainIdentifyReview(FlowSpec):
     # dm.train_dataset.data = training slice of self.all_df
     # dm.dev_dataset.data = dev slice of self.all_df
     # dm.test_dataset.data = test slice of self.all_df
-    # TODO
+    dm.train_dataset.data = self.all_df[:train_size]
+    dm.dev_dataset.data = self.all_df[:train_size:train_size+dev_size]
+    dm.test_dataset.data = self.all_df[train_size+dev_size:]
     # # ====================================
 
     # start from scratch
